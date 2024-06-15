@@ -15,6 +15,7 @@ import '../typedefs.dart';
 import '../widgets/image_preview_widget.dart';
 import '../widgets/pdf_view_widget.dart';
 import '../widgets/progress_dialog_widget.dart';
+import 'package:path/path.dart' as p;
 
 import 'device_directory_helper.dart';
 
@@ -58,9 +59,7 @@ class DownloadViewer {
         onReceiveProgress: (received, total) {
           if (total != -1) {
             final String progress = (received / total * 100).toStringAsFixed(0);
-            if (progress != '100') {
-              onProgress('$progress%');
-            }
+            onProgress('$progress%');
           }
         },
         queryParameters: queryParams,
@@ -118,6 +117,7 @@ class DownloadViewer {
     required String fileName,
     required String downloadFolderName,
     bool displayInNativeApp = true,
+    bool useBuiltInPreviewer = true,
     void Function(String, String)? customPreviewBuilder,
     Widget? progressWidget,
   }) async {
@@ -134,36 +134,33 @@ class DownloadViewer {
     }
 
     if (hasFilePath) {
-      _openExistingFile(context, savePath, fileExtension, fileName,
-          displayInNativeApp, customPreviewBuilder);
-    } else {
-      _downloadFile(
+      _openDownloadedFile(
+        displayInNativeApp,
         context,
-        downloadUrl,
         savePath,
-        progressWidget,
-        cancelToken,
-        navigator,
+        fileExtension,
+        fileName,
+        previewBuilder: customPreviewBuilder,
       );
+    } else {
+      _downloadFile(context, downloadUrl, savePath, progressWidget, cancelToken,
+          navigator, fileName, displayInNativeApp);
     }
   }
 
-  static void _openExistingFile(
-      BuildContext context,
-      String? savePath,
-      String? fileExtension,
-      String? fileName,
-      bool displayInNativeApp,
-      Function(String, String)? customPreviewBuilder) {
-    if (!displayInNativeApp) {
-      _openFile(
-          context: context,
-          savePath: savePath,
-          fileExtension: fileExtension,
-          fileName: fileName,
-          customPreviewBuilder: customPreviewBuilder);
+  static void _openDownloadedFile(bool displayInNativeApp, BuildContext context,
+      String? savePath, String? fileExtension, String? fileName,
+      {void Function(String, String)? previewBuilder}) {
+    if (displayInNativeApp) {
+      _openNativeFile(savePath);
     } else {
-      OpenFilex.open(savePath);
+      _openFile(
+        context: context,
+        savePath: savePath,
+        fileExtension: fileExtension,
+        fileName: fileName,
+        customPreviewBuilder: previewBuilder,
+      );
     }
   }
 
@@ -174,6 +171,8 @@ class DownloadViewer {
     Widget? progressWidget,
     CancelToken cancelToken,
     NavigatorState navigator,
+    String fileName,
+    bool displayInNativeApp,
   ) {
     showDialog(
       context: context,
@@ -187,7 +186,6 @@ class DownloadViewer {
             );
       },
     );
-
     try {
       _download(
         downloadUrl: downloadUrl,
@@ -195,7 +193,15 @@ class DownloadViewer {
         cancelToken: cancelToken,
         onSuccess: (path) {
           navigator.pop();
-          OpenFilex.open(path);
+          final String fileExtension = p.extension(savePath);
+
+          _openDownloadedFile(
+            displayInNativeApp,
+            context,
+            savePath,
+            fileExtension,
+            fileName,
+          );
         },
         onFailed: (message) {
           navigator.pop();
@@ -220,12 +226,13 @@ class DownloadViewer {
   }
 
   //Open file in-app or recommend app based on the document extension
-  static void _openFile(
-      {required BuildContext context,
-      required String? savePath,
-      required String? fileExtension,
-      required String? fileName,
-      Function(String, String)? customPreviewBuilder}) {
+  static void _openFile({
+    required BuildContext context,
+    required String? savePath,
+    required String? fileExtension,
+    required String? fileName,
+    Function(String, String)? customPreviewBuilder,
+  }) {
     if (fileExtension == '.pdf' || fileExtension == '.PDF') {
       if (savePath != null) {
         if (customPreviewBuilder != null) {
@@ -252,12 +259,12 @@ class DownloadViewer {
           customPreviewBuilder(fileName!, savePath);
           return;
         } else {
-          final ImagePreviewWidget pdfRoute =
+          final ImagePreviewWidget imageRoute =
               ImagePreviewWidget(imageFile: savePath, fileName: fileName!);
           if (Platform.isAndroid) {
-            _androidRouting(context, savePath, fileName, pdfRoute);
+            _androidRouting(context, savePath, fileName, imageRoute);
           } else {
-            _iosRouting(context, savePath, fileName, pdfRoute);
+            _iosRouting(context, savePath, fileName, imageRoute);
           }
         }
       }
@@ -265,10 +272,14 @@ class DownloadViewer {
         fileExtension == '.DOC' ||
         fileExtension == '.docx' ||
         fileExtension == '.DOCX') {
-      OpenFilex.open(savePath);
+      _openNativeFile(savePath);
     } else {
-      OpenFilex.open(savePath);
+      _openNativeFile(savePath);
     }
+  }
+
+  static void _openNativeFile(String? savePath) {
+    OpenFilex.open(savePath);
   }
 
   static void _iosRouting(

@@ -22,11 +22,11 @@ class ProgressDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(),
             const Text(
               'previewFile',
               style: TextStyle(fontSize: 12, color: Colors.black),
             ),
+            const CircularProgressIndicator(),
             const SizedBox(
               height: 12,
             ),

@@ -1,7 +1,7 @@
 name: download_viewer
 description: "A Flutter package to download and view images, PDFs, and other document formats using native or custom viewers."
 version: 0.0.1
-homepage: ''
+homepage: 'https://github.com/basnetjiten/download_viewer'
 
 environment:
   sdk: '>=3.3.2 <4.0.0'
