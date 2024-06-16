@@ -101,6 +101,7 @@ class DownloadViewer {
   /// * [displayInNativeApp] - Determines whether to open the file using the native app or a custom viewer. Defaults to true.
   /// * [progressWidget] - A widget to display a progress bar during the download process.
   /// * [customPreviewBuilder] - A custom builder widget to provide your own preview and routing. Make sure to set [displayInNativeApp] to false when using this.
+  /// * [useDefaultProgressDialog] - Flag to enable or disable download progress Dialog
 
   ///
   /// Usage:
@@ -141,7 +142,11 @@ class DownloadViewer {
       // Log error or show a message to the user
       return;
     }
-    _showProgressDialog(context, cancelToken, progressWidget);
+
+    // Whether to show download progress
+    if (useDefaultProgressDialog) {
+      _showProgressDialog(context, cancelToken, progressWidget);
+    }
 
     if (hasFilePath) {
       onDownloadComplete();

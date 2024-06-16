@@ -44,11 +44,35 @@ class _DownloadViewerWidgetState extends State<DownloadViewerWidget> {
       body: Center(
         child: ElevatedButton(
           onPressed: () {
+
+            //use [useDefaultProgressDialog] false, to hide default dialog and use own progress dialog;
+            // create own dialog using streamController
+            // update streamController value with progress obtained in onDownloadProgress
+
+            //Example:
+            // showDialog(
+            //   context: context,
+            //   builder: (BuildContext context) {
+            //     return StreamBuilder<String>(
+            //       stream: _downloadStreamController?.stream,
+            //       builder: (context, snapshot) {
+            //         return Center(
+            //           child: Text(
+            //             snapshot.data ?? '',
+            //           ),
+            //         );
+            //       },
+            //     );
+            //   },
+            // );
+
             DownloadViewer.downloadAndViewFile(
               onDownloadComplete: () {
                 Navigator.of(context, rootNavigator: true).pop();
               },
-              onDownloadProgress: (Stream<String> progress) {},
+              onDownloadProgress: (Stream<String> progress) {
+                //_downloadStreamController.add(progress);
+              },
               context,
               displayInNativeApp: false,
               downloadUrl:
