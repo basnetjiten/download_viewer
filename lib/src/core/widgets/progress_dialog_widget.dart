@@ -2,7 +2,6 @@
 * @Author:Jiten Basnet on 15/06/2024
 * @Company: GTEN SOFTWARE
 */
-
 import 'package:flutter/material.dart';
 
 class ProgressDialog extends StatelessWidget {

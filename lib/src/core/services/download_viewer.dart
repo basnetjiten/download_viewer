@@ -6,6 +6,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:download_viewer/download_viewer.dart';
 import 'package:download_viewer/src/core/context_ext.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,13 +15,14 @@ import 'package:open_filex/open_filex.dart';
 import '../typedefs.dart';
 import '../widgets/image_preview_widget.dart';
 import '../widgets/pdf_view_widget.dart';
-import '../widgets/progress_dialog_widget.dart';
 import 'package:path/path.dart' as p;
 
 import 'device_directory_helper.dart';
 
 class DownloadViewer {
   DownloadViewer._();
+
+  static StreamController<String>? _downloadStreamController;
 
   static final Dio _dio = Dio();
 
@@ -42,7 +44,7 @@ class DownloadViewer {
   ///
   /// Errors:
   /// * [DioException] - If an error occurs during the download request.
-  static Future<void> _download({
+  static Future<void> _downloadViaAPI({
     required String downloadUrl,
     required String savePath,
     required DownloadSuccessCallback onSuccess,
@@ -59,7 +61,10 @@ class DownloadViewer {
         onReceiveProgress: (received, total) {
           if (total != -1) {
             final String progress = (received / total * 100).toStringAsFixed(0);
-            onProgress('$progress%');
+
+            if (progress != '100') {
+              onProgress(progress);
+            }
           }
         },
         queryParameters: queryParams,
@@ -117,12 +122,16 @@ class DownloadViewer {
     required String fileName,
     required String downloadFolderName,
     bool displayInNativeApp = true,
+    bool useDefaultProgressDialog = true,
     bool useBuiltInPreviewer = true,
+    required Function(Stream<String>) onDownloadProgress,
+    required DownloadFailedCallback onDownloadFailed,
+    required DownloadCompleteCallback onDownloadComplete,
     void Function(String, String)? customPreviewBuilder,
     Widget? progressWidget,
   }) async {
+    _downloadStreamController = StreamController<String>.broadcast();
     final CancelToken cancelToken = CancelToken();
-    final NavigatorState navigator = Navigator.of(context, rootNavigator: true);
 
     final (hasFilePath, savePath, fileExtension) =
         await DeviceDirectoryHelper.checkFilePath(
@@ -132,8 +141,10 @@ class DownloadViewer {
       // Log error or show a message to the user
       return;
     }
+    _showProgressDialog(context, cancelToken, progressWidget);
 
     if (hasFilePath) {
+      onDownloadComplete();
       _openDownloadedFile(
         displayInNativeApp,
         context,
@@ -143,8 +154,34 @@ class DownloadViewer {
         previewBuilder: customPreviewBuilder,
       );
     } else {
-      _downloadFile(context, downloadUrl, savePath, progressWidget, cancelToken,
-          navigator, fileName, displayInNativeApp);
+      try {
+        _downloadViaAPI(
+          downloadUrl: downloadUrl,
+          savePath: savePath,
+          cancelToken: cancelToken,
+          onSuccess: (path) {
+            onDownloadComplete();
+
+            final String fileExtension = p.extension(savePath);
+
+            _openDownloadedFile(
+              displayInNativeApp,
+              context,
+              savePath,
+              fileExtension,
+              fileName,
+            );
+          },
+          onFailed: (message) {
+            onDownloadFailed(message);
+          },
+          onProgress: (progress) {
+            _downloadStreamController?.add(progress);
+          },
+        );
+      } catch (e) {
+        onDownloadFailed(e.toString());
+      }
     }
   }
 
@@ -153,6 +190,7 @@ class DownloadViewer {
       {void Function(String, String)? previewBuilder}) {
     if (displayInNativeApp) {
       _openNativeFile(savePath);
+      _downloadStreamController?.close();
     } else {
       _openFile(
         context: context,
@@ -161,57 +199,6 @@ class DownloadViewer {
         fileName: fileName,
         customPreviewBuilder: previewBuilder,
       );
-    }
-  }
-
-  static void _downloadFile(
-    BuildContext context,
-    String downloadUrl,
-    String savePath,
-    Widget? progressWidget,
-    CancelToken cancelToken,
-    NavigatorState navigator,
-    String fileName,
-    bool displayInNativeApp,
-  ) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (innerContext) {
-        return progressWidget ??
-            ProgressDialog(
-              onTokenCancel: () {
-                cancelToken.cancel();
-              },
-            );
-      },
-    );
-    try {
-      _download(
-        downloadUrl: downloadUrl,
-        savePath: savePath,
-        cancelToken: cancelToken,
-        onSuccess: (path) {
-          navigator.pop();
-          final String fileExtension = p.extension(savePath);
-
-          _openDownloadedFile(
-            displayInNativeApp,
-            context,
-            savePath,
-            fileExtension,
-            fileName,
-          );
-        },
-        onFailed: (message) {
-          navigator.pop();
-          _handleDownloadFailure(context, cancelToken, message);
-        },
-        onProgress: (progress) {},
-      );
-    } catch (e) {
-      navigator.pop();
-      _handleDownloadFailure(context, cancelToken, e.toString());
     }
   }
 
@@ -237,6 +224,7 @@ class DownloadViewer {
       if (savePath != null) {
         if (customPreviewBuilder != null) {
           customPreviewBuilder(fileName!, savePath);
+          _downloadStreamController?.close();
           return;
         } else {
           final PdfViewWidget pdfRoute =
@@ -260,7 +248,7 @@ class DownloadViewer {
           return;
         } else {
           final ImagePreviewWidget imageRoute =
-              ImagePreviewWidget(imageFile: savePath, fileName: fileName!);
+              ImagePreviewWidget(imagePath: savePath, fileName: fileName!);
           if (Platform.isAndroid) {
             _androidRouting(context, savePath, fileName, imageRoute);
           } else {
@@ -286,11 +274,32 @@ class DownloadViewer {
       BuildContext context, String savePath, String? fileName, Widget page) {
     Navigator.of(context).push(
         CupertinoPageRoute(builder: (context) => page, fullscreenDialog: true));
+    _downloadStreamController?.close();
   }
 
   static void _androidRouting(
       BuildContext context, String savePath, String? fileName, Widget page) {
     Navigator.of(context).push(
         MaterialPageRoute(builder: (context) => page, fullscreenDialog: true));
+    _downloadStreamController?.close();
+  }
+
+  static void _showProgressDialog(
+      BuildContext context, CancelToken cancelToken, Widget? progressWidget) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return progressWidget ??
+            StreamBuilder<String>(
+              stream: _downloadStreamController?.stream,
+              builder: (context, snapshot) {
+                return ProgressDialog(onTokenCancel: () {
+                  cancelToken.cancel();
+                });
+              },
+            );
+      },
+    );
   }
 }

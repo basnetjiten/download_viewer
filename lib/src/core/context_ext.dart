@@ -1,6 +1,6 @@
 /*
 * @Author:Jiten Basnet on 15/06/2024
-* @Company: EB Pearls
+* @Company: GTEN SOFTWARE
 */
 import 'package:flutter/material.dart';
 

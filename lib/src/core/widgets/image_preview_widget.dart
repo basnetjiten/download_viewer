@@ -1,3 +1,8 @@
+/*
+* @Author:Jiten Basnet on 15/06/2024
+* @Company: GTEN SOFTWARE
+*/
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
@@ -5,11 +10,11 @@ import 'package:photo_view/photo_view.dart';
 class ImagePreviewWidget extends StatefulWidget {
   const ImagePreviewWidget({
     super.key,
-    required this.imageFile,
+    required this.imagePath,
     required this.fileName,
   });
 
-  final String imageFile;
+  final String imagePath;
   final String fileName;
 
   @override
@@ -22,7 +27,7 @@ class _ImagePreviewPageState extends State<ImagePreviewWidget> {
   @override
   void initState() {
     super.initState();
-    _imageFile = File(widget.imageFile);
+    _imageFile = File(widget.imagePath);
   }
 
   @override

@@ -25,8 +25,15 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class DownloadViewerWidget extends StatelessWidget {
+class DownloadViewerWidget extends StatefulWidget {
   const DownloadViewerWidget({super.key});
+
+  @override
+  State<DownloadViewerWidget> createState() => _DownloadViewerWidgetState();
+}
+
+class _DownloadViewerWidgetState extends State<DownloadViewerWidget> {
+  Completer _dialogCompleter = Completer<void>();
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +42,13 @@ class DownloadViewerWidget extends StatelessWidget {
         title: const Text('Download_Viewer'),
       ),
       body: Center(
-        child: MaterialButton(
-          color: Colors.blueGrey,
+        child: ElevatedButton(
           onPressed: () {
             DownloadViewer.downloadAndViewFile(
+              onDownloadComplete: () {
+                Navigator.of(context, rootNavigator: true).pop();
+              },
+              onDownloadProgress: (Stream<String> progress) {},
               context,
               displayInNativeApp: false,
               downloadUrl:
@@ -46,7 +56,14 @@ class DownloadViewerWidget extends StatelessWidget {
               fileName:
                   'assets_YJIGb4i01jvw0SRdL5Bt_869bfbaec9c64415ae68235d9b7b1425.jpeg',
               downloadFolderName: 'DownloadViewer',
-              //customPreviewBuilder: (filename, savedPath) {},
+              onDownloadFailed: (String fa) {},
+              // customPreviewBuilder: (filename, savedPath) {
+              //   final ImagePreviewWidget pdfRoute = ImagePreviewWidget(
+              //       imagePath: savedPath, fileName: filename);
+              //
+              //   Navigator.of(context)
+              //       .push(MaterialPageRoute(builder: (context) => pdfRoute));
+              // },
             );
           },
           child: const Text('Download And view'),
