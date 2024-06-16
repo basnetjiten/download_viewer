@@ -13,8 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 
 import '../typedefs.dart';
-import '../widgets/image_preview_widget.dart';
-import '../widgets/pdf_view_widget.dart';
 import 'package:path/path.dart' as p;
 
 import 'device_directory_helper.dart';
