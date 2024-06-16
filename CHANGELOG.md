@@ -3,4 +3,5 @@
 
 
 ## 0.0.2
-* update .
+* update method callbacks.
+* add download progress
