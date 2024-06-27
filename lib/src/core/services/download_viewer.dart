@@ -148,6 +148,9 @@ class DownloadViewer {
 
     if (hasFilePath) {
       onDownloadComplete();
+
+      _closeProgressDialog(useDefaultProgressDialog, context);
+
       _openDownloadedFile(
         displayInNativeApp,
         context,
@@ -177,14 +180,23 @@ class DownloadViewer {
           },
           onFailed: (message) {
             onDownloadFailed(message);
+            _closeProgressDialog(useDefaultProgressDialog, context);
           },
           onProgress: (progress) {
             _downloadStreamController?.add(progress);
           },
         );
       } catch (e) {
+        _closeProgressDialog(useDefaultProgressDialog, context);
         onDownloadFailed(e.toString());
       }
+    }
+  }
+
+  static void _closeProgressDialog(
+      bool useDefaultProgressDialog, BuildContext context) {
+    if (useDefaultProgressDialog) {
+      Navigator.of(context, rootNavigator: true).pop();
     }
   }
 
@@ -202,16 +214,6 @@ class DownloadViewer {
         fileName: fileName,
         customPreviewBuilder: previewBuilder,
       );
-    }
-  }
-
-  static void _handleDownloadFailure(
-      BuildContext context, CancelToken cancelToken, String message) {
-    if (cancelToken.isCancelled) {
-      context.showSnackBar(message: 'Download cancelled.', error: true);
-    } else {
-      context.showSnackBar(
-          message: 'Failed to download document.', error: true);
     }
   }
 
@@ -299,6 +301,7 @@ class DownloadViewer {
               builder: (context, snapshot) {
                 return ProgressDialog(onTokenCancel: () {
                   cancelToken.cancel();
+                  Navigator.of(context, rootNavigator: true).pop();
                 });
               },
             );

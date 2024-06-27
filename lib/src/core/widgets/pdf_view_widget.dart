@@ -10,15 +10,21 @@ class PdfViewWidget extends StatelessWidget {
     super.key,
     required this.filePath,
     required this.fileName,
+    this.backButtonColor,
   });
 
   final String filePath;
   final String fileName;
 
+  final Color? backButtonColor;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+          color: backButtonColor,
+        ),
         title: Text(fileName),
       ),
       body: PDFView(
