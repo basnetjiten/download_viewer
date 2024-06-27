@@ -23,7 +23,8 @@ class PdfViewWidget extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(
-          color: backButtonColor,
+          color: backButtonColor ?? Colors.white,
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(fileName),
       ),

@@ -27,7 +27,7 @@ class ProgressDialog extends StatelessWidget {
             ),
             Transform.scale(
               scale: 0.5,
-              child: CircularProgressIndicator(),
+              child: const CircularProgressIndicator(),
             ),
             const SizedBox(
               height: 12,

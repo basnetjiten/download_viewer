@@ -7,7 +7,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:download_viewer/download_viewer.dart';
-import 'package:download_viewer/src/core/context_ext.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
@@ -132,6 +131,11 @@ class DownloadViewer {
     _downloadStreamController = StreamController<String>.broadcast();
     final CancelToken cancelToken = CancelToken();
 
+    // Whether to show download progress
+    if (useDefaultProgressDialog) {
+      _showProgressDialog(context, cancelToken, progressWidget);
+    }
+
     final (hasFilePath, savePath, fileExtension) =
         await DeviceDirectoryHelper.checkFilePath(
             fileName: fileName, downloadFolderName: downloadFolderName);
@@ -141,15 +145,8 @@ class DownloadViewer {
       return;
     }
 
-    // Whether to show download progress
-    if (useDefaultProgressDialog) {
-      _showProgressDialog(context, cancelToken, progressWidget);
-    }
-
     if (hasFilePath) {
       onDownloadComplete();
-
-      _closeProgressDialog(useDefaultProgressDialog, context);
 
       _openDownloadedFile(
         displayInNativeApp,
@@ -196,7 +193,7 @@ class DownloadViewer {
   static void _closeProgressDialog(
       bool useDefaultProgressDialog, BuildContext context) {
     if (useDefaultProgressDialog) {
-      Navigator.of(context, rootNavigator: true).pop();
+      Navigator.of(context).pop();
     }
   }
 
@@ -252,8 +249,13 @@ class DownloadViewer {
           customPreviewBuilder(fileName!, savePath);
           return;
         } else {
-          final ImagePreviewWidget imageRoute =
-              ImagePreviewWidget(imagePath: savePath, fileName: fileName!);
+          final ImagePreviewWidget imageRoute = ImagePreviewWidget(
+            imagePath: savePath,
+            fileName: fileName!,
+            onBackPressed: () {
+              //Navigator.pop(context);
+            },
+          );
           if (Platform.isAndroid) {
             _androidRouting(context, savePath, fileName, imageRoute);
           } else {
@@ -277,15 +279,14 @@ class DownloadViewer {
 
   static void _iosRouting(
       BuildContext context, String savePath, String? fileName, Widget page) {
-    Navigator.of(context).push(
-        CupertinoPageRoute(builder: (context) => page, fullscreenDialog: true));
+    Navigator.of(context).push(CupertinoPageRoute(builder: (context) => page));
     _downloadStreamController?.close();
   }
 
   static void _androidRouting(
       BuildContext context, String savePath, String? fileName, Widget page) {
-    Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => page, fullscreenDialog: true));
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => page));
+
     _downloadStreamController?.close();
   }
 

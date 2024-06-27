@@ -12,12 +12,13 @@ class ImagePreviewWidget extends StatefulWidget {
     super.key,
     required this.imagePath,
     required this.fileName,
-    this.backButtonColor,
+    this.onBackPressed,
   });
 
   final String imagePath;
   final String fileName;
-  final Color? backButtonColor;
+
+  final void Function()? onBackPressed;
 
   @override
   State<ImagePreviewWidget> createState() => _ImagePreviewPageState();
@@ -37,7 +38,8 @@ class _ImagePreviewPageState extends State<ImagePreviewWidget> {
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(
-          color: widget.backButtonColor,
+          color: Colors.white,
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(widget.fileName),
       ),
