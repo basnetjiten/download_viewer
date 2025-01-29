@@ -115,6 +115,51 @@ class DownloadViewer {
   /// );
   /// ```
 
+
+  static Future<void> downloadFile({
+    required String downloadUrl,
+    required String fileName,
+    required String downloadFolderName,
+    required Function(Stream<String>) onDownloadProgress,
+    required DownloadFailedCallback onDownloadFailed,
+    required DownloadCompleteCallback onDownloadComplete,
+  }) async {
+    _downloadStreamController = StreamController<String>.broadcast();
+    final CancelToken cancelToken = CancelToken();
+
+    final (hasFilePath, savePath, _) =
+    await DeviceDirectoryHelper.checkFilePath(
+        fileName: fileName, downloadFolderName: downloadFolderName);
+
+    if (savePath == null) {
+      onDownloadFailed('Invalid save path');
+      return;
+    }
+
+    if (hasFilePath) {
+      onDownloadComplete();
+    } else {
+      try {
+        _downloadViaAPI(
+          downloadUrl: downloadUrl,
+          savePath: savePath,
+          cancelToken: cancelToken,
+          onSuccess: (path) {
+            onDownloadComplete();
+          },
+          onFailed: (message) {
+            onDownloadFailed(message);
+          },
+          onProgress: (progress) {
+            _downloadStreamController?.add(progress);
+          },
+        );
+      } catch (e) {
+        onDownloadFailed(e.toString());
+      }
+    }
+  }
+
   static Future<void> downloadAndViewFile(
     BuildContext context, {
     required String downloadUrl,
