@@ -13,7 +13,7 @@ dependencies:
 
   dio: ^5.5.0+1
 
-  open_filex: 4.4.0
+  open_filex: ^4.6.0
 
   path_provider: ^2.1.4
 

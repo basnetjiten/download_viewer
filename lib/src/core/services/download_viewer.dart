@@ -115,7 +115,6 @@ class DownloadViewer {
   /// );
   /// ```
 
-
   static Future<void> downloadFile({
     required String downloadUrl,
     required String fileName,
@@ -128,8 +127,8 @@ class DownloadViewer {
     final CancelToken cancelToken = CancelToken();
 
     final (hasFilePath, savePath, _) =
-    await DeviceDirectoryHelper.checkFilePath(
-        fileName: fileName, downloadFolderName: downloadFolderName);
+        await DeviceDirectoryHelper.checkFilePath(
+            fileName: fileName, downloadFolderName: downloadFolderName);
 
     if (savePath == null) {
       onDownloadFailed('Invalid save path');
@@ -315,7 +314,9 @@ class DownloadViewer {
   }
 
   static void _openNativeFile(String? savePath) {
-    OpenFilex.open(savePath);
+    if (savePath != null) {
+      OpenFilex.open(savePath);
+    }
   }
 
   static void _iosRouting(
