@@ -354,12 +354,12 @@ class DownloadViewer {
   }
 
   ///Opens the download folder path
-  void openFile(String filePath) {
+  static void openFile(String filePath) {
     OpenFilex.open(filePath);
   }
 
   ///Share the downloaded file
-  Future<bool> shareFile({
+  static Future<bool> shareFile({
     required String filePath,
     String? message,
   }) async {
