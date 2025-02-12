@@ -10,6 +10,7 @@ import 'package:download_viewer/download_viewer.dart';
 import 'package:download_viewer/src/core/context_ext.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:open_file_manager/open_file_manager.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -375,5 +376,14 @@ class DownloadViewer {
     if (!await File(filePath).exists()) return false;
     final result = await Share.shareXFiles([XFile(filePath)], text: message);
     return result.status == ShareResultStatus.success;
+  }
+
+  ///Opens File Manager of device
+  static Future<void> openDeviceFileManager(
+      {required String iosFolderPath}) async {
+    await openFileManager(
+      androidConfig: AndroidConfig(folderType: FolderType.download),
+      iosConfig: IosConfig(subFolderPath: iosFolderPath),
+    );
   }
 }
