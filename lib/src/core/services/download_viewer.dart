@@ -52,6 +52,7 @@ class DownloadViewer {
     Map<String, dynamic>? queryParams,
     CancelToken? cancelToken,
     Options? options,
+    String? authToken,
   }) async {
     try {
       final response = await _dio.download(
@@ -70,8 +71,12 @@ class DownloadViewer {
         cancelToken: cancelToken,
         options: options ??
             Options(
-                responseType: ResponseType.bytes,
-                headers: {HttpHeaders.acceptEncodingHeader: '*'}),
+              responseType: ResponseType.bytes,
+              headers: {
+                HttpHeaders.acceptEncodingHeader: '*',
+                if (authToken != null) 'Authorization': authToken,
+              },
+            ),
       );
 
       if (response.statusCode == 200) {
@@ -124,6 +129,7 @@ class DownloadViewer {
     required DownloadFailedCallback onDownloadFailed,
     required DownloadCompleteCallback onDownloadComplete,
     Map<String, dynamic>? queryParams,
+    String? authToken,
   }) async {
     _downloadStreamController = StreamController<String>.broadcast();
     final CancelToken cancelToken = CancelToken();
@@ -142,6 +148,7 @@ class DownloadViewer {
     } else {
       try {
         _downloadViaAPI(
+          authToken: authToken,
           queryParams: queryParams,
           downloadUrl: downloadUrl,
           savePath: savePath,
