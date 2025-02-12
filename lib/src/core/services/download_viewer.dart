@@ -11,6 +11,7 @@ import 'package:download_viewer/src/core/context_ext.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../typedefs.dart';
 import 'package:path/path.dart' as p;
@@ -350,5 +351,20 @@ class DownloadViewer {
             );
       },
     );
+  }
+
+  ///Opens the download folder path
+  void openFile(String filePath) {
+    OpenFilex.open(filePath);
+  }
+
+  ///Share the downloaded file
+  Future<bool> shareFile({
+    required String filePath,
+    String? message,
+  }) async {
+    if (!await File(filePath).exists()) return false;
+    final result = await Share.shareXFiles([XFile(filePath)], text: message);
+    return result.status == ShareResultStatus.success;
   }
 }
