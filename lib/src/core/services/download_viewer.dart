@@ -123,6 +123,7 @@ class DownloadViewer {
     required Function(Stream<String>) onDownloadProgress,
     required DownloadFailedCallback onDownloadFailed,
     required DownloadCompleteCallback onDownloadComplete,
+    Map<String, dynamic>? queryParams,
   }) async {
     _downloadStreamController = StreamController<String>.broadcast();
     final CancelToken cancelToken = CancelToken();
@@ -141,6 +142,7 @@ class DownloadViewer {
     } else {
       try {
         _downloadViaAPI(
+          queryParams: queryParams,
           downloadUrl: downloadUrl,
           savePath: savePath,
           cancelToken: cancelToken,
