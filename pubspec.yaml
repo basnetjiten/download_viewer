@@ -13,7 +13,9 @@ dependencies:
 
   dio: ^5.5.0+1
 
-  open_filex: ^4.6.0
+  open_filex:
+   git:
+     url: https://github.com/mufassalhussain/open_filex
 
   path_provider: ^2.1.4
 
