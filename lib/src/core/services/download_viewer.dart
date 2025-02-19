@@ -125,6 +125,7 @@ class DownloadViewer {
   static Future<void> downloadFile({
     required String downloadUrl,
     required String fileName,
+    bool overrideWithNewFile = false,
     required String downloadFolderName,
     required Function(Stream<String>) onDownloadProgress,
     required DownloadFailedCallback onDownloadFailed,
@@ -144,29 +145,48 @@ class DownloadViewer {
       return;
     }
 
-    if (hasFilePath) {
+    if (hasFilePath && !overrideWithNewFile) {
       onDownloadComplete();
     } else {
-      try {
-        _downloadViaAPI(
-          authToken: authToken,
-          queryParams: queryParams,
-          downloadUrl: downloadUrl,
-          savePath: savePath,
-          cancelToken: cancelToken,
-          onSuccess: (path) {
-            onDownloadComplete();
-          },
-          onFailed: (message) {
-            onDownloadFailed(message);
-          },
-          onProgress: (progress) {
-            _downloadStreamController?.add(progress);
-          },
-        );
-      } catch (e) {
-        onDownloadFailed(e.toString());
-      }
+      _downloadFileAgain(
+        authToken,
+        queryParams,
+        downloadUrl,
+        savePath,
+        cancelToken,
+        onDownloadComplete,
+        onDownloadFailed,
+      );
+    }
+  }
+
+  static void _downloadFileAgain(
+      String? authToken,
+      Map<String, dynamic>? queryParams,
+      String downloadUrl,
+      String savePath,
+      CancelToken cancelToken,
+      DownloadCompleteCallback onDownloadComplete,
+      DownloadFailedCallback onDownloadFailed) {
+    try {
+      _downloadViaAPI(
+        authToken: authToken,
+        queryParams: queryParams,
+        downloadUrl: downloadUrl,
+        savePath: savePath,
+        cancelToken: cancelToken,
+        onSuccess: (path) {
+          onDownloadComplete();
+        },
+        onFailed: (message) {
+          onDownloadFailed(message);
+        },
+        onProgress: (progress) {
+          _downloadStreamController?.add(progress);
+        },
+      );
+    } catch (e) {
+      onDownloadFailed(e.toString());
     }
   }
 
