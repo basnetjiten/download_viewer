@@ -10,12 +10,18 @@ import 'package:path/path.dart' as path;
 
 class DeviceDirectoryHelper {
   static Future<(bool, String?, String?)> checkFilePath(
-      {required String fileName, required String downloadFolderName}) async {
+      {required bool deleteOldFile,
+      required String fileName,
+      required String downloadFolderName}) async {
     final String? filePath = await getDownloadDirectory(downloadFolderName);
 
     if (filePath != null) {
       final String savePath = path.join(filePath, fileName);
       final File file = File(savePath);
+
+      if (deleteOldFile && file.existsSync()) {
+        file.delete(recursive: true);
+      }
       final String ext = path.extension(savePath);
       return (file.existsSync(), savePath, ext);
     }

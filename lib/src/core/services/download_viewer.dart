@@ -138,7 +138,9 @@ class DownloadViewer {
 
     final (hasFilePath, savePath, _) =
         await DeviceDirectoryHelper.checkFilePath(
-            fileName: fileName, downloadFolderName: downloadFolderName);
+            fileName: fileName,
+            downloadFolderName: downloadFolderName,
+            deleteOldFile: overrideWithNewFile);
 
     if (savePath == null) {
       onDownloadFailed('Invalid save path');
@@ -209,7 +211,10 @@ class DownloadViewer {
 
     final (hasFilePath, savePath, fileExtension) =
         await DeviceDirectoryHelper.checkFilePath(
-            fileName: fileName, downloadFolderName: downloadFolderName);
+      fileName: fileName,
+      downloadFolderName: downloadFolderName,
+      deleteOldFile: false,
+    );
 
     if (savePath == null) {
       // Log error or show a message to the user
