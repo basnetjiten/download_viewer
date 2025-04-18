@@ -23,8 +23,10 @@ class DeviceDirectoryHelper {
         await file.delete(recursive: true);
       }
 
-      if (!(await file.exists())) {
-        await file.create(recursive: true);
+      // Make sure the parent directory exists
+      final dir = file.parent;
+      if (!(await dir.exists())) {
+        await dir.create(recursive: true);
       }
       final String ext = path.extension(savePath);
       return (file.existsSync(), savePath, ext);
