@@ -19,8 +19,12 @@ class DeviceDirectoryHelper {
       final String savePath = path.join(filePath, fileName);
       final File file = File(savePath);
 
-      if (deleteOldFile && file.existsSync()) {
-        file.delete(recursive: true);
+      if (deleteOldFile && await file.exists()) {
+        await file.delete(recursive: true);
+      }
+
+      if (!(await file.exists())) {
+        await file.create(recursive: true);
       }
       final String ext = path.extension(savePath);
       return (file.existsSync(), savePath, ext);
