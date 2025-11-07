@@ -5,6 +5,7 @@
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:download_viewer/download_viewer.dart';
 import 'package:download_viewer/src/core/context_ext.dart';
@@ -12,12 +13,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:open_file_manager/open_file_manager.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:path/path.dart' as p;
 import 'package:share_plus/share_plus.dart';
 
 import '../typedefs.dart';
-import 'package:path/path.dart' as p;
-
-import 'device_directory_helper.dart';
 
 class DownloadViewer {
   DownloadViewer._();
@@ -399,7 +398,14 @@ class DownloadViewer {
     String? message,
   }) async {
     if (!await File(filePath).exists()) return false;
-    final result = await Share.shareXFiles([XFile(filePath)], text: message);
+    ShareParams shareParams = ShareParams(
+      text: message,
+      files: [XFile(filePath)],
+      sharePositionOrigin: const Rect.fromLTWH(0, 0, 1, 1),
+    );
+    final result = await SharePlus.instance.share(
+      shareParams,
+    );
     return result.status == ShareResultStatus.success;
   }
 

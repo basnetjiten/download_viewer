@@ -23,7 +23,7 @@ dependencies:
 
   path: ^1.9.1
 
-  share_plus: ^10.1.4
+  share_plus: ^12.0.1
 
   open_file_manager: ^1.1.1
 
