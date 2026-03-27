@@ -413,8 +413,8 @@ class DownloadViewer {
   static Future<void> openDeviceFileManager(
       {required String iosFolderPath}) async {
     await openFileManager(
-      androidConfig: AndroidConfig(folderType: FolderType.download),
-      iosConfig: IosConfig(subFolderPath: iosFolderPath),
+      androidConfig: AndroidConfig(folderType: AndroidFolderType.download),
+      iosConfig: IosConfig(folderPath: iosFolderPath),
     );
   }
 }
